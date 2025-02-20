@@ -18,7 +18,7 @@ const Home = () => {
   return (
     <div>
       <h1>Welcome to the Homepage</h1>
-      
+      <h2>Don't Mess Up</h2>
     
         <>
           <h2>Hello, {user}!</h2>
