@@ -4,7 +4,7 @@ import cors from "cors";
 import studModel from "./models/studentModel.js"
 import hashpassword from "./middleWare/hashpassword.js";
 import bcrypt from "bcryptjs";
-
+import router from "./routes/authRoutes.js";
 const app = express();
 const PORT = 5000; 
 
@@ -52,7 +52,7 @@ mongoose
   // });
   
 
-  app.use("/api/auth",authR)
+  app.use("/api/auth",router)
 app.get('/',(req,res)=>{
  res.send("hello World")
 })

@@ -1,4 +1,7 @@
-import React from 'react'
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../redux/userSlice"; // Import action
+import { useNavigate } from "react-router-dom";
 import {
     TextField,
     Button,
@@ -6,72 +9,77 @@ import {
     Typography,
     Box,
     Paper,
-  } from "@mui/material";
-  import { useNavigate } from "react-router-dom";
+} from "@mui/material";
 
-import { useState } from 'react'
-import axios from 'axios';
 const Login = () => {
-const [formData,setFormData]=useState({
-    email:"",
-    password:""
-});
+    const [formData, setFormData] = useState({
+        email: "",
+        password: "",
+    });
 
-const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const user = useSelector((state) => state.user.user); // Track user state
+    const error = useSelector((state) => state.user.error);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Register Data:", formData);
-  
-    axios
-      .post("http://localhost:5000/login", formData)
-      .then((result) => {
-        console.log("Login Response:", result.data);
-        navigate('/home');
-      })
-      .catch((err) => {
-        console.log("Login Error:", err.response ? err.response.data : err.message);
-      });
-  };
-  
-const navigate= useNavigate();
-  return (
-     <Container maxWidth="sm">
-       <Paper elevation={3} style={{ padding: 20, marginTop: 50 }}>
-         <Typography variant="h5" align="center" gutterBottom>
-         Login
-         </Typography>
-         <Box component="form" onSubmit={handleSubmit}>
-          
-           <TextField
-             fullWidth
-             label="Email"
-             name="email"
-             type="email"
-             value={formData.email}
-             onChange={handleChange}
-             margin="normal"
-             required
-           />
-           <TextField
-             fullWidth
-             label="Password"
-             name="password"
-             type="password"
-             value={formData.password}
-             onChange={handleChange}
-             margin="normal"
-             required
-           />
-           <Button type="submit" variant="outlined" color="primary" fullWidth>
-             Login
-           </Button>
-         </Box>
-       </Paper>
-     </Container>
-  )
-}
+    // Handle Input Change
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
-export default Login
+    // Handle Form Submit
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        dispatch(loginUser(formData, navigate)); // Pass navigate here
+    };
+
+    // Navigate to home page when user is set in Redux
+    useEffect(() => {
+        if (user) {
+            console.log("✅ User logged in, navigating...");
+            navigate("/home");
+        }
+    }, [user, navigate]);
+
+    return (
+        <Container maxWidth="sm">
+            <Paper elevation={3} style={{ padding: 20, marginTop: 50 }}>
+                <Typography variant="h5" align="center" gutterBottom>
+                    Login
+                </Typography>
+                {error && (
+                    <Typography color="error" align="center">
+                        {error}
+                    </Typography>
+                )}
+                <Box component="form" onSubmit={handleSubmit}>
+                    <TextField
+                        fullWidth
+                        label="Email"
+                        name="email"
+                        type="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        margin="normal"
+                        required
+                    />
+                    <TextField
+                        fullWidth
+                        label="Password"
+                        name="password"
+                        type="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        margin="normal"
+                        required
+                    />
+                    <Button type="submit" variant="outlined" color="primary" fullWidth>
+                        Login
+                    </Button>
+                </Box>
+            </Paper>
+        </Container>
+    );
+};
+
+export default Login;

@@ -24,7 +24,7 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(registerUser(formData, navigate("/login"))); 
+    dispatch(registerUser(formData, navigate)); 
   };
 
   return (

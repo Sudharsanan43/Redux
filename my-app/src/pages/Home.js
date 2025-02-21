@@ -21,7 +21,7 @@ const Home = () => {
       <h2>Don't Mess Up</h2>
     
         <>
-          <h2>Hello, {user}!</h2>
+          <h2>Hello, {user.name}!</h2>
           <button onClick={handleLogout}>Logout</button>
         </>
  
