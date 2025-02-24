@@ -12,7 +12,7 @@ const userSlice = createSlice({
     authSuccess: (state, action) => {
       console.log("✅ Redux State Updated: ", action.payload);
       state.loading = false;
-      state.user = action.payload;
+      state.user = action.payload || {};
     },
     authFailure: (state, action) => {
       state.loading = false;
@@ -24,10 +24,12 @@ const userSlice = createSlice({
       }
     },
     logout: (state) => {
-      state.user = null;
+      state.user = null; // ✅ Clears user
       state.loading = false;
       state.error = null;
+      localStorage.removeItem("user"); // ✅ Ensure user data is cleared
     },
+    
   },
 });
 export const registerUser = (userData, navigate) => async (dispatch) => {
@@ -35,10 +37,10 @@ export const registerUser = (userData, navigate) => async (dispatch) => {
     dispatch(authStart());
     const response = await axios.post("http://localhost:5000/api/auth/register", userData);
 
-    dispatch(authSuccess(response.data));
+  
 
     console.log("🔥 Registration API Response:", response.data);
-    
+    dispatch(authSuccess(response.data))
     navigate("/login");
   } catch (error) {
     dispatch(authFailure(error.response?.data?.error || "Registration failed"));
@@ -54,7 +56,7 @@ export const loginUser = (userData, navigate) => async (dispatch) => {
       console.log("🔥 Login API Response:", response.data);
 
       if (response.data) {
-          navigate("/home"); // Navigate after successful login
+          navigate("/home");
       }
   } catch (error) {
       dispatch(authFailure(error.response?.data?.error || "Login failed"));

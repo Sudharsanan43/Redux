@@ -33,13 +33,12 @@ const Login = () => {
         dispatch(loginUser(formData, navigate)); // Pass navigate here
     };
 
-    // Navigate to home page when user is set in Redux
-    useEffect(() => {
-        if (user) {
-            console.log("✅ User logged in, navigating...");
-            navigate("/home");
-        }
-    }, [user, navigate]);
+    // useEffect(() => {
+    //     if (user) {
+    //         console.log("✅ User logged in, navigating...");
+    //         navigate("/home");
+    //     }
+    // }, [user, navigate]);
 
     return (
         <Container maxWidth="sm">
