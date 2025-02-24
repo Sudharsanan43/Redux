@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 
-
-const StudSchema= new mongoose.Schema({
-    name:String,
-    email:String,
-    password:String,
-
+const StudSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },  
+    password: { type: String, required: true },
 });
- const studModel=mongoose.model("student",StudSchema);
- export default studModel;
+
+// Create and export the model
+const studModel = mongoose.model("Student", StudSchema);
+export default studModel;

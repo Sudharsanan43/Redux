@@ -1,13 +1,19 @@
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables
+
 const verifyToken = (req, res, next) => {
-    const token = req.header("Authorization")?.split(" ")[1];
-    if (!token) return res.status(401).json({ error: "Access Denied" });
-  
     try {
-      const verified = jwt.verify(token, "secretkey");
-      req.user = verified;
-      next();
+        const token = req.header("Authorization")?.split(" ")[1]; // Extract token
+        if (!token) return res.status(401).json({ error: "Access Denied" });
+
+        const verified = jwt.verify(token, process.env.JWT_SECRET); // Use secure secret key
+        req.user = verified; // Attach user info to request
+        next();
     } catch (err) {
-      res.status(400).json({ error: "Invalid Token" });
+        return res.status(401).json({ error: "Invalid or Expired Token" });
     }
-  };
-  export default verifyToken;
+};
+
+export default verifyToken;

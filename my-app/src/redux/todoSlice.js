@@ -1,41 +1,38 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-// export const getTodosAsync = createAsyncThunk(
-//     "todos/getTodosAsync",
-//     async (_, { rejectWithValue }) => {
-//         try {
-//             const resp = await fetch("http://localhost:7000/todos");
-//             if (!resp.ok) throw new Error("Failed to fetch todos");
-//             const todos = await resp.json();
-//             return { todos };
-//         } catch (error) {
-//             return rejectWithValue(error.message); // ✅ Handle errors properly
-//         }
-//     }
-// );
+// ✅ Get all todos (Protected Route)
+export const getTodosAsync = createAsyncThunk(
+    "todos/getTodosAsync",
+    async (_, { rejectWithValue, getState }) => {
+        try {
+            const token = getState().auth.token; // Get JWT token from Redux store
+            const resp = await fetch("http://localhost:5000/api/todos", {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`, // ✅ Attach token for authentication
+                },
+            });
 
-export const getTodosAsync=createAsyncThunk(
-    'todos/getTodosAsync',
-    async()=>{
-        const resp=await fetch('http://localhost:7000/todos');
-        if(resp.ok){
-            const todos=await resp.json();
-            return {todos};
+            if (!resp.ok) throw new Error("Failed to fetch todos");
+            const todos = await resp.json();
+            return { todos };
+        } catch (error) {
+            return rejectWithValue(error.message);
         }
     }
+);
 
-
-)
-
-// Add new todo to API
+// ✅ Add new todo (Protected Route)
 export const addTodoAsync = createAsyncThunk(
     "todos/addTodoAsync",
-    async (payload, { rejectWithValue }) => {
+    async (payload, { rejectWithValue, getState }) => {
         try {
-            const resp = await fetch("http://localhost:7000/todos", {
+            const token = getState().auth.token;
+            const resp = await fetch("http://localhost:5000/api/todos", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
                 },
                 body: JSON.stringify({ title: payload.title }),
             });
@@ -44,7 +41,50 @@ export const addTodoAsync = createAsyncThunk(
             const todo = await resp.json();
             return { todo };
         } catch (error) {
-            return rejectWithValue(error.message); // ✅ Handle errors properly
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+// ✅ Toggle Todo Completion
+export const toggleTodoAsync = createAsyncThunk(
+    "todos/toggleTodoAsync",
+    async (id, { rejectWithValue, getState }) => {
+        try {
+            const token = getState().auth.token;
+            const resp = await fetch(`http://localhost:5000/api/todos/${id}`, {
+                method: "PATCH",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+            });
+
+            if (!resp.ok) throw new Error("Failed to toggle todo");
+            const updatedTodo = await resp.json();
+            return { updatedTodo };
+        } catch (error) {
+            return rejectWithValue(error.message);
+        }
+    }
+);
+
+// ✅ Delete Todo
+export const deleteTodoAsync = createAsyncThunk(
+    "todos/deleteTodoAsync",
+    async (id, { rejectWithValue, getState }) => {
+        try {
+            const token = getState().auth.token;
+            const resp = await fetch(`http://localhost:5000/api/todos/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+            });
+
+            if (!resp.ok) throw new Error("Failed to delete todo");
+            return { id };
+        } catch (error) {
+            return rejectWithValue(error.message);
         }
     }
 );
@@ -52,39 +92,14 @@ export const addTodoAsync = createAsyncThunk(
 export const todoSlice = createSlice({
     name: "todos",
     initialState: {
-        todos: [
-            { id: 1, title: "todo1", completed: false },
-            { id: 2, title: "todo2", completed: false },
-            { id: 3, title: "todo3", completed: true },
-            { id: 4, title: "todo4", completed: false },
-            { id: 5, title: "todo5", completed: false },
-        ],
-        status: "idle", // ✅ Tracks loading state
-        error: null, // ✅ Stores error messages
+        todos: [],
+        status: "idle", // Tracks loading state
+        error: null, // Stores error messages
     },
-    reducers: {
-        addTodo: (state, action) => {
-            if (!action.payload || !action.payload.title) return;
-        
-            state.todos.push({
-                id: new Date().getTime(),
-                title: action.payload.title.trim(),
-                completed: false,
-            });
-        },
-        toggleComplete: (state, action) => {
-            const index = state.todos.findIndex((todo) => todo.id === action.payload.id);
-            if (index !== -1) {
-                state.todos[index].completed = !state.todos[index].completed;
-            }
-        },
-        deleteTodo: (state, action) => {
-            state.todos = state.todos.filter(todo => todo.id !== action.payload);
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder
-           
+            // ✅ Fetch Todos
             .addCase(getTodosAsync.pending, (state) => {
                 state.status = "loading";
             })
@@ -96,7 +111,8 @@ export const todoSlice = createSlice({
                 state.status = "failed";
                 state.error = action.payload;
             })
-     
+
+            // ✅ Add Todo
             .addCase(addTodoAsync.pending, (state) => {
                 state.status = "loading";
             })
@@ -107,10 +123,27 @@ export const todoSlice = createSlice({
             .addCase(addTodoAsync.rejected, (state, action) => {
                 state.status = "failed";
                 state.error = action.payload;
+            })
+
+            // ✅ Toggle Todo Completion
+            .addCase(toggleTodoAsync.fulfilled, (state, action) => {
+                const index = state.todos.findIndex(todo => todo._id === action.payload.updatedTodo._id);
+                if (index !== -1) {
+                    state.todos[index].completed = action.payload.updatedTodo.completed;
+                }
+            })
+            .addCase(toggleTodoAsync.rejected, (state, action) => {
+                state.error = action.payload;
+            })
+
+            // ✅ Delete Todo
+            .addCase(deleteTodoAsync.fulfilled, (state, action) => {
+                state.todos = state.todos.filter(todo => todo._id !== action.payload.id);
+            })
+            .addCase(deleteTodoAsync.rejected, (state, action) => {
+                state.error = action.payload;
             });
     }
 });
-
-export const { addTodo, toggleComplete, deleteTodo } = todoSlice.actions;
 
 export default todoSlice.reducer;
