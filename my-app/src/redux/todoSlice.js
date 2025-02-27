@@ -5,7 +5,7 @@ export const getTodosAsync = createAsyncThunk(
     "todos/getTodosAsync",
     async (_, { rejectWithValue, getState }) => {
         try {
-            const token = getState().auth.token; // Get JWT token from Redux store
+            const token = getState().user?.token; // Get JWT token from Redux store
             const resp = await fetch("http://localhost:5000/api/todos", {
                 method: "GET",
                 headers: {
@@ -27,7 +27,7 @@ export const addTodoAsync = createAsyncThunk(
     "todos/addTodoAsync",
     async (payload, { rejectWithValue, getState }) => {
         try {
-            const token = getState().auth.token;
+            const token = getState().user?.token;
             const resp = await fetch("http://localhost:5000/api/todos", {
                 method: "POST",
                 headers: {
@@ -51,7 +51,7 @@ export const toggleTodoAsync = createAsyncThunk(
     "todos/toggleTodoAsync",
     async (id, { rejectWithValue, getState }) => {
         try {
-            const token = getState().auth.token;
+            const token = getState().user?.token;
             const resp = await fetch(`http://localhost:5000/api/todos/${id}`, {
                 method: "PATCH",
                 headers: {
@@ -67,13 +67,44 @@ export const toggleTodoAsync = createAsyncThunk(
         }
     }
 );
+export const editTodoAsync = createAsyncThunk(
+    "todos/editTodoAsync",
+    async ({ id, updatedData }, { rejectWithValue, getState }) => {
+        try {
+            const token = getState().user?.token;
+            console.log("Sending update request for:", id, updatedData); // Debugging
+
+            const resp = await fetch(`http://localhost:5000/api/todos/${id}`, {
+                method: "PUT", // ✅ Ensure it matches backend
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(updatedData),
+            });
+
+            if (!resp.ok) {
+                const errorMessage = await resp.text();
+                console.error("Update failed:", errorMessage); // Debugging
+                throw new Error("Failed To Update The Task");
+            }
+
+            const data = await resp.json();
+            console.log("Updated Todo Response:", data); // Debugging
+            return data; // ✅ Return updated todo
+        } catch (error) {
+            console.error("EditTodoAsync error:", error); // Debugging
+            return rejectWithValue(error.message);
+        }
+    }
+);
 
 // ✅ Delete Todo
 export const deleteTodoAsync = createAsyncThunk(
     "todos/deleteTodoAsync",
     async (id, { rejectWithValue, getState }) => {
         try {
-            const token = getState().auth.token;
+            const token = getState().user?.token;
             const resp = await fetch(`http://localhost:5000/api/todos/${id}`, {
                 method: "DELETE",
                 headers: {
@@ -88,6 +119,7 @@ export const deleteTodoAsync = createAsyncThunk(
         }
     }
 );
+
 
 export const todoSlice = createSlice({
     name: "todos",
@@ -136,6 +168,20 @@ export const todoSlice = createSlice({
                 state.error = action.payload;
             })
 
+
+            .addCase(editTodoAsync.fulfilled, (state, action) => {
+                const index = state.todos.findIndex(todo => todo._id === action.payload._id);
+                if (index !== -1) {
+                    state.todos[index] = action.payload; // Update the todo in the state
+                }
+            })
+            .addCase(editTodoAsync.rejected, (state, action) => {
+                state.error = action.payload;
+            })
+
+
+            
+
             // ✅ Delete Todo
             .addCase(deleteTodoAsync.fulfilled, (state, action) => {
                 state.todos = state.todos.filter(todo => todo._id !== action.payload.id);
@@ -143,6 +189,9 @@ export const todoSlice = createSlice({
             .addCase(deleteTodoAsync.rejected, (state, action) => {
                 state.error = action.payload;
             });
+
+
+            
     }
 });
 

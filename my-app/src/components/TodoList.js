@@ -11,7 +11,7 @@ const TodoList = () => {
 
     // Get todos and authentication state from Redux store
     const { todos, status, error } = useSelector((state) => state.todos);
-    const token = useSelector((state) => state.auth.token);
+    const token = useSelector((state) => state.user?.token); // ✅ Correct Redux path
 
     // Redirect to login if not authenticated
     useEffect(() => {

@@ -1,63 +1,8 @@
-// import React, { useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import { useDispatch, useSelector } from "react-redux";
-// import { registerUser } from "../redux/userSlice"; // Import Redux action
-// import {
-//   TextField,
-//   Button,
-//   Container,
-//   Typography,
-//   Box,
-//   Paper,
-// } from "@mui/material";
-
-// const Register = () => {
-//   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
-
-//   const dispatch = useDispatch();
-//   const navigate = useNavigate();
-//   const { loading, error } = useSelector((state) => state.user); 
-
-//   const handleChange = (e) => {
-//     setFormData({ ...formData, [e.target.name]: e.target.value });
-//   };
-
-//   const handleSubmit = (e) => {
-//     e.preventDefault();
-//     dispatch(registerUser(formData, navigate)); 
-//   };
-
-//   return (
-//     <Container maxWidth="sm">
-//       <Paper elevation={3} style={{ padding: 20, marginTop: 50 }}>
-//         <Typography variant="h5" align="center" gutterBottom>
-//           Register
-//         </Typography>
-//         {error && <Typography color="error">{error}</Typography>}
-//         <Box component="form" onSubmit={handleSubmit}>
-//           <TextField fullWidth label="Name" name="name" value={formData.name} onChange={handleChange} margin="normal" required />
-//           <TextField fullWidth label="Email" name="email" type="email" value={formData.email} onChange={handleChange} margin="normal" required />
-//           <TextField fullWidth label="Password" name="password" type="password" value={formData.password} onChange={handleChange} margin="normal" required />
-//           <Button type="submit" variant="outlined" color="primary" fullWidth disabled={loading}>
-//             {loading ? "Registering..." : "Register"}
-//           </Button>
-//         </Box>
-//         <div>
-//           <p>Already have an account?</p>
-//           <Button onClick={() => navigate("/login")}>Login</Button>
-//         </div>
-//       </Paper>
-//     </Container>
-//   );
-// };
-
-// export default Register;
-
-
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../redux/userSlice"; 
+import { ToastContainer, toast } from 'react-toastify';
 import {
   TextField,
   Button,
@@ -66,6 +11,7 @@ import {
   Box,
   Paper,
   CircularProgress,
+  Grid,
 } from "@mui/material";
 
 const Register = () => {
@@ -73,90 +19,123 @@ const Register = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, user } = useSelector((state) => state.user);
+  const { loading, error } = useSelector((state) => state.user);
 
+  // 🔹 Handle Form Inputs
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  // 🔹 Handle Form Submission
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.name || !formData.email || !formData.password) {
-      alert("Please fill in all fields");
+      toast.error("⚠️ Please fill in all fields.");
       return;
     }
 
-    dispatch(registerUser(formData));
-  };
+    try {
+      const resultAction = await dispatch(registerUser(formData)).unwrap(); // ✅ Wait for completion
 
-  useEffect(() => {
-    if (user) {
-      alert("Registration successful! Redirecting to login...");
-      navigate("/login");
+      if (resultAction) { // ✅ If registration was successful
+        toast.success("🎉 Registration successful! Redirecting to login...");
+        setTimeout(() => navigate("/login"), 2000); // ✅ Redirect after a short delay
+      }
+    } catch (error) {
+      console.error("❌ Registration failed:", error);
+      toast.error(`❌ ${error}`);
     }
-  }, [user, navigate]);
+  };
 
   return (
     <Container maxWidth="sm">
-      <Paper elevation={3} style={{ padding: 20, marginTop: 50 }}>
-        <Typography variant="h5" align="center" gutterBottom>
-          Register
-        </Typography>
+      <Paper elevation={5} sx={{ padding: 4, marginTop: 5, borderRadius: 3 }}>
         
+        {/* 🔹 Title and Subtitle */}
+        <Typography variant="h4" align="center" gutterBottom>
+          Create an Account
+        </Typography>
+        <Typography variant="body1" color="textSecondary" align="center" paragraph>
+          Please fill in the details to create your account.
+        </Typography>
+
+        {/* 🔹 Error Message */}
         {error && (
-          <Typography color="error" style={{ backgroundColor: "#ffdddd", padding: "8px", borderRadius: "5px" }}>
+          <Typography color="error" sx={{ backgroundColor: "#ffdddd", padding: "8px", borderRadius: "5px", marginBottom: 2 }}>
             {error}
           </Typography>
         )}
 
+        {/* 🔹 Registration Form */}
         <Box component="form" onSubmit={handleSubmit}>
-          <TextField 
-            fullWidth label="Name" 
-            name="name" 
-            value={formData.name} 
-            onChange={handleChange} 
-            margin="normal" 
-            required 
-          />
-          <TextField 
-            fullWidth label="Email" 
-            name="email" 
-            type="email" 
-            value={formData.email} 
-            onChange={handleChange} 
-            margin="normal" 
-            required 
-          />
-          <TextField 
-            fullWidth label="Password" 
-            name="password" 
-            type="password" 
-            value={formData.password} 
-            onChange={handleChange} 
-            margin="normal" 
-            required 
-          />
+          
+          {/* Grid layout for text fields */}
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <TextField 
+                fullWidth 
+                label="Full Name" 
+                name="name" 
+                value={formData.name} 
+                onChange={handleChange} 
+                required 
+                variant="outlined" 
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField 
+                fullWidth 
+                label="Email Address" 
+                name="email" 
+                type="email" 
+                value={formData.email} 
+                onChange={handleChange} 
+                required 
+                variant="outlined" 
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField 
+                fullWidth 
+                label="Password" 
+                name="password" 
+                type="password" 
+                value={formData.password} 
+                onChange={handleChange} 
+                required 
+                variant="outlined" 
+              />
+            </Grid>
+          </Grid>
 
+          {/* 🔹 Submit Button */}
           <Button 
             type="submit" 
             variant="contained" 
             color="primary" 
             fullWidth 
             disabled={loading} 
-            style={{ marginTop: "10px" }}
+            sx={{ marginTop: 3, fontSize: "16px", fontWeight: "bold" }}
           >
             {loading ? <CircularProgress size={24} /> : "Register"}
           </Button>
-        </Box>
 
-        <div style={{ marginTop: "10px", textAlign: "center" }}>
-          <Typography variant="body2">Already have an account?</Typography>
-          <Button onClick={() => navigate("/login")}>Login</Button>
-        </div>
+          {/* 🔹 Already have an account */}
+          <Typography variant="body2" align="center" sx={{ marginTop: 2 }}>
+            Already have an account?{" "}
+            <Button onClick={() => navigate("/login")} color="primary" sx={{ textTransform: "none" }}>
+              Login
+            </Button>
+          </Typography>
+        </Box>
       </Paper>
+
+      {/* 🔹 Toast Notification Container */}
+      <ToastContainer position="top-right" autoClose={3000} />
     </Container>
   );
 };
 
 export default Register;
+

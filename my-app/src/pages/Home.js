@@ -35,16 +35,17 @@ const Home = () => {
 
       {/* Welcome Section */}
       <Paper elevation={3} sx={{ p: 4, mt: 3, textAlign: "center" }}>
-        <Typography variant="h4" gutterBottom>
-          Welcome to the Homepage
+      <Typography variant="h4" sx={{ mt: 2 }}>
+          Hello, {user?.name || "Guest"}!
         </Typography>
-        <Typography variant="h6" color="primary">
+        <Typography variant="h6" gutterBottom color="primary">
+          Let's Work on the tasks!
+        </Typography>
+        <Typography variant="h8">
           Don't Mess Up
         </Typography>
 
-        <Typography variant="h5" sx={{ mt: 2 }}>
-          Hello, {user?.name || "Guest"}!
-        </Typography>
+        
       </Paper>
 
       {/* Todo Section */}

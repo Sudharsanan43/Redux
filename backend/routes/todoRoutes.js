@@ -45,6 +45,39 @@ router.patch("/:id", verifyToken, async (req, res) => {
     }
 });
 
+// ✅ Update a Todo (Edit title or other fields)
+router.put("/:id", verifyToken, async (req, res) => {
+    try {
+        console.log("Request Body:", req.body); // ✅ Log incoming request data
+        console.log("Todo ID:", req.params.id);
+        console.log("User ID:", req.user.id);
+
+        const { title } = req.body;
+        if (!title) {
+            return res.status(400).json({ message: "Title is required" });
+        }
+
+        const updatedTodo = await Todo.findOneAndUpdate(
+            { _id: req.params.id, userId: req.user.id }, 
+            { title },
+            { new: true,runValidators: true } // ✅ Return updated document
+        );
+
+        if (!updatedTodo) {
+            return res.status(404).json({ message: "Todo not found" });
+        }
+
+        res.json(updatedTodo);
+    } catch (error) {
+        console.error("Error updating todo:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+
+
+
+
 // ✅ Delete a todo
 router.delete("/:id", verifyToken, async (req, res) => {
     try {
