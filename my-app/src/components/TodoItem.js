@@ -16,10 +16,13 @@ const TodoItem = ({ id, title, completed }) => {
         dispatch(toggleTodoAsync(id)); 
     };
 
-    const handleDeleteClick = () => {
-        toast.success("Task Removed");
-        dispatch(deleteTodoAsync(id)); 
-    };
+    const handleDeleteClick = async () => {
+      toast.success("Task Removed",{duration:2000 }); 
+      await dispatch(deleteTodoAsync(id)); 
+      // Now it triggers after the task is actually removed
+  };
+  
+  
     const handleEditClick = () => {
         setOpen(true); // Open the edit dialog
     };
